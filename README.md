@@ -1,4 +1,4 @@
-work-in-progress
+Game of Life
 ================
 
-Just some code for testing.
+This visualiser gets an audio buffer from an input stream and processes visuals based on the data.
