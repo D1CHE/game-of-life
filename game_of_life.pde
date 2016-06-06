@@ -29,7 +29,7 @@ float x, y;
 void setup() 
 {
   // sketch stuff
-  size(1680, 1050, P3D);
+  size(1440, 900, P3D);
   background(0);
   colorMode(HSB);
   frameRate(30);
@@ -38,19 +38,19 @@ void setup()
   minim = new Minim(this);
   in = minim.getLineIn();
   fft = new FFT(in.bufferSize(), in.sampleRate());
-  monitoring = true;
+  monitoring = false;
   simulating = false;
   // other stuff
   w = 1000;
   h = 1000;
   x = 490;
   y = 491;
-  upDown = 600;
+  upDown = 1470;
   lightMod = 20;
   colorMod = 0;
   snareMod = 0;
   kickMod = 0;
-  freq = 0;
+  freq = 80;
   frame = 0;
   gridSize = 10;
   barSize = 850;
@@ -59,17 +59,14 @@ void setup()
 
 void draw() 
 {
-  if (frame > freq) frame=0;
-  if (frame == 0) background(0);
-  frame++;
   setCamera();
   fft.forward(in.mix);
   if (monitoring) in.enableMonitoring(); 
   else in.disableMonitoring();
   if (simulating) simulation.calculatePixels();
-  //if (((in.mix.get(0)+1)/2) > 0.52) addType(13, 46, 46);
+  if (((in.mix.get(0)+1)/2) > 0.52) addType(13, 46, 46);
   gridSize = 10;
-  //drawRoom();
+  drawRoom();
   //drawGrid();
   drawPixels();
 }
@@ -80,7 +77,7 @@ void drawRoom()
 {
   translate(w/2, h/2, 2200);
   fill(255, 0, 255);
-  box(kickMod+1500, kickMod+1500, 5000);
+  box(1000, 1000, kickMod+5000);
   noFill();
   translate(-w/2, -h/2, -2200);  
 }
@@ -107,16 +104,17 @@ void drawPixels()
   noStroke();
   colorMod = int((fft.getFreq(800)+fft.getFreq(1000)+fft.getFreq(2000)+fft.getFreq(4000)) * 32);
   if (snareMod > 0) snareMod-= 30;
-  if (fft.getFreq(180) > 14) snareMod = 360;
-  if (kickMod > 0) kickMod-= 250;
-  if (fft.getFreq(83) > 18) kickMod = 3000;
+  if ((fft.getFreq(180) + fft.getFreq(8000) + fft.getFreq(1200)) > (freq)) snareMod = 360;
+  if (kickMod > 0) kickMod-= 500;
+  if ((fft.getFreq(60) + fft.getFreq(83) + fft.getFreq(4000)) > (80 + freq)) kickMod = 10000;
   for (int i=0; i<h/gridSize; i++)
   {
     for (int j=0; j<w/gridSize; j++)
     {
       state = simulation.getPixel();
-      barSize = int(1000-(abs(state)* 0.000089406727356) * ((in.mix.get(0)+1)/2));
-      fill(kickMod, 255, 0.00001519914365*abs(state), 255);
+      barSize = snareMod*5;
+      //barSize = int(1000-(abs(state)* 0.000089406727356) * ((in.mix.get(0)+1)/2));
+      fill(kickMod/50, 255, 0.00001519914365*abs(state), 255);
       if (state < -1)
       {
         specular(204, 102, 0);
@@ -162,14 +160,14 @@ void addType(int obj, int xPos, int yPos)
 
 void setCamera()
 {
-  angleToXY(snareMod, -upDown);
+  angleToXY(90, 5);
   if(lightMod > 100) lightMod-= 100;
   if (fft.getFreq(150)+fft.getFreq(170) > 10) lightMod = 850+200;
-  pointLight(255, 0, 50, 200, 490, barSize+800);
-  pointLight(255, 0, 50, 400, 490, barSize+800);
-  pointLight(255, 0, 50, 600, 490, barSize+800);
-  pointLight(255, 0, 50, 800, 490, barSize+800);
-  camera(x, y, (height/2) + 400/*+upDown*/ / tan(PI*30.0 / 180.0), 490, 490, mouseX, 0, 0, -1);
+  pointLight(255, 0, 50, 200, 490, 2000);
+  pointLight(255, 0, 50, 400, 490, 2000);
+  pointLight(255, 0, 50, 600, 490, 2000);
+  pointLight(255, 0, 50, 800, 490, 2000);
+  camera(x, y, (upDown) + 400 / tan(PI*30.0 / 180.0), 490, 490, mouseX, 0, 0, -1);
 }
 
 void angleToXY(int angle, int dist)
@@ -205,4 +203,3 @@ void keyPressed()
     case 'r': simulation.clearPixels(); break;
   }
 }
-
